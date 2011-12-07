@@ -1,22 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-module Spec (main, spec) where
+module Spec (main) where
 
-import           Test.Hspec.Monadic
-import           Test.Hspec.HUnit ()
-import           Test.HUnit
-import           Control.Monad
+import TestUtil
 
-import Text.Format
+import Text.Format (format)
 
-shouldBe :: (Show a, Eq a) => a -> a -> Assertion
-actual `shouldBe` expected = unless (actual == expected) (assertFailure message)
-  where
-    message = show actual ++ " was not equal to " ++ show expected
-
-main = hspec spec
-
-spec = do
+main = hspec $ do
 
   describe "format" $ do
     it "interpolates identifiers in strings" $ do
