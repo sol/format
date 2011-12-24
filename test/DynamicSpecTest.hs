@@ -1,36 +1,32 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-orphans #-}
 module DynamicSpecTest (tests) where
-import Test.Framework.TH (testGroupGenerator)
-import Test.Framework.Providers.HUnit
-import Test.Framework.Providers.QuickCheck2
 
-import Test.HUnit
-import Test.QuickCheck
+import           Control.Applicative
+import qualified Data.Text as Text
 
-import DynamicSpec
+import           Test.Framework.TH
+import           Test.Framework.Providers.QuickCheck2
+import           Test.QuickCheck
 
-import Text.ParserCombinators.ReadP
+import           DynamicSpec
 
 tests = $(testGroupGenerator)
-
-escapeLiteral :: String -> String
-escapeLiteral        ""  =             ""
-escapeLiteral ('$' : xs) = '$' : '$' : escapeLiteral xs
-escapeLiteral ( x  : xs) =        x  : escapeLiteral xs
+main  = $(defaultMainGenerator)
 
 instance Arbitrary Literal where
-  arbitrary = do
-    s <- arbitrary `suchThat` (not . elem '{')
-    return $ Literal $ escapeLiteral s
+  arbitrary = Literal <$> arbitrary
 
 instance Arbitrary Capture where
-  arbitrary = do
-    s <- arbitrary `suchThat` (not . null) `suchThat` (not . elem '}')
-    return (Capture s)
+  arbitrary = Capture <$> arbitrary `suchThat` (not . null)
+                                    `suchThat` (not . elem '{')
+                                    `suchThat` (not . elem '}')
 
 prop_parse t = (parse . render) t == Just t
 
-render (Literal s, x) = escapeLiteral s ++ render_ x
+render (Literal s, xs) = escapeLiteral s ++ renderList xs
   where
-    render_ [] = ""
-    render_ ((Capture c, Literal s) : xs) = concat ["${", c, "}", escapeLiteral s, render_ xs]
+    escapeLiteral = Text.unpack . Text.replace "{" "{{" . Text.pack
+
+    renderList [] = ""
+    renderList ((Capture c, Literal y) : ys) = "{" ++ c ++ "}" ++ escapeLiteral y ++ renderList ys

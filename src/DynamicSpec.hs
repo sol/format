@@ -21,7 +21,7 @@ import           Text.ParserCombinators.ReadP
 -- >>> :set -fth
 -- >>> let x = "bar"
 -- >>> let y = 23
--- >>> $(format "foo ${x} ${y} baz")
+-- >>> $(format "foo {x} {y} baz")
 -- "foo bar 23 baz"
 format :: String -> Q Exp
 format s = [| $(formatS s) "" |]
@@ -63,19 +63,21 @@ spec = do
   return (l, c)
 
 literal :: ReadP Literal
-literal = do
-  x <- munch (/= '$')
-  xs <- many dollarAndLiteral
-  return $ Literal $ concat (x : xs)
+literal = (Literal . concat) <$> literal_
   where
-    dollarAndLiteral = do
-      _ <- string "$$"
-      s <- munch (/= '$')
-      return $ '$' : s
+    literal_ = do
+      x <- munch (/= '{')
+      s <- look
+      case s of
+        '{':'{':_ -> do
+          _ <- string "{{"
+          y <- literal_
+          return (x : "{" : y)
+        _ -> return [x]
 
 capture :: ReadP (Capture, Literal)
 capture = do
-  _ <- string "${"
+  _ <- char '{'
   c <- munch1 (/= '}')
   _ <- char '}'
   l <- literal
