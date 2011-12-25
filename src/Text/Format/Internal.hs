@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module DynamicSpec where
+module Text.Format.Internal where
 
 import           Language.Haskell.TH
 

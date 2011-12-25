@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-orphans #-}
-module DynamicSpecTest (tests) where
+module ParseTest (tests) where
 
 import           Control.Applicative
 import qualified Data.Text as Text
@@ -9,7 +9,7 @@ import           Test.Framework.TH
 import           Test.Framework.Providers.QuickCheck2
 import           Test.QuickCheck
 
-import           DynamicSpec
+import           Text.Format.Internal (parse, Literal(..), Capture(..))
 
 tests = $(testGroupGenerator)
 main  = $(defaultMainGenerator)

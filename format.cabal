@@ -15,7 +15,7 @@ library
   exposed-modules:
       Text.Format
   other-modules:
-      DynamicSpec
+      Text.Format.Internal
   build-depends:
       base
     , template-haskell
