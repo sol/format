@@ -1,15 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Text.Format.Internal where
+module Text.Format.Internal (format, formatS, parse, Literal(..), Capture(..)) where
 
 import           Language.Haskell.TH
-
-import           Data.Maybe
-import           Data.Typeable
-import           Control.Applicative hiding (many)
-
-import qualified Data.Text as Text
-
 import           Text.ParserCombinators.ReadP
+import qualified Text.Format.Formattable as Formattable
 
 -- | Format given string.
 --
@@ -34,15 +28,7 @@ formatS s =
     Just (Literal x, xs) -> [|showString x . $(format_ xs)|]
   where
     format_ [] = [|id|]
-    format_ ((Capture c, Literal x) : xs) = [|formatValue $(dyn c) . showString x . $(format_ xs)|]
-
-formatValue :: (Typeable a, Show a) => a -> ShowS
-formatValue x = fromMaybe (showString $ show x) (mstring <|> mtext)
-  where
-    -- special formating rules for Text and String
-    mstring = showString <$> cast x
-    mtext = showString . Text.unpack <$> cast x
-
+    format_ ((Capture c, Literal x) : xs) = [|Formattable.formatS $(dyn c) . showString x . $(format_ xs)|]
 
 type Spec = (Literal, [(Capture, Literal)])
 newtype Literal = Literal String deriving (Eq, Show)
@@ -63,7 +49,7 @@ spec = do
   return (l, c)
 
 literal :: ReadP Literal
-literal = (Literal . concat) <$> literal_
+literal = (Literal . concat) `fmap` literal_
   where
     literal_ = do
       x <- munch (/= '{')

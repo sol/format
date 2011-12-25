@@ -16,6 +16,7 @@ library
       Text.Format
   other-modules:
       Text.Format.Internal
+      Text.Format.Formattable
   build-depends:
       base
     , template-haskell
