@@ -14,9 +14,9 @@ library
   hs-source-dirs: src
   exposed-modules:
       Text.Format
+    , Text.Format.Formattable
   other-modules:
       Text.Format.Internal
-      Text.Format.Formattable
   build-depends:
       base
     , template-haskell

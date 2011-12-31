@@ -5,10 +5,10 @@ import           Language.Haskell.TH
 import           Text.ParserCombinators.ReadP
 import qualified Text.Format.Formattable as Formattable
 
--- | Format given string.
+-- | Format a string.
 --
--- Identifiers in curly braces are substitute from the outer scope (dynamically
--- scoped).
+-- Identifiers in curly brackets are interpolated from the outer scope
+-- (dynamically scoped), and must be instances of `Formattable.Formattable`.
 --
 -- Example:
 --
