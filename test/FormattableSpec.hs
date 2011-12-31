@@ -12,9 +12,12 @@ import           Text.Format.Formattable
 data Foo = Foo deriving Show
 
 main = hspec $ do
-  describe "Text.Formattable.formatS" $ do
+  describe "formatS" $ do
     it "works for String" $ do
       format ("some string" :: String) `shouldBe` "some string"
+
+    it "works for ShowS" $ do
+      format (showString "some string") `shouldBe` "some string"
 
     it "works for Data.Text" $ do
       format ("some text" :: Text) `shouldBe` "some text"
