@@ -8,6 +8,9 @@ import qualified Data.Text.Lazy as L
 class Formattable a where
   formatS :: a -> ShowS
 
+instance Formattable ShowS where
+  formatS = id
+
 instance Formattable String where
   formatS = showString
 

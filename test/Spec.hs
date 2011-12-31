@@ -14,3 +14,7 @@ main = hspec $ do
 
     it "produces { from {{" $ do
       $(format "Hello, {{name}!") `shouldBe` "Hello, {name}!"
+
+    it "can interpolate ShowS values" $ do
+      let name = showString "John"
+      $(format "Hello, {name}!") `shouldBe` "Hello, John!"
