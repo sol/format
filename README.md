@@ -1,3 +1,7 @@
-String interpolation for Haskell.
+String interpolation for Haskell:
 
-See [spec](https://github.com/sol/format/blob/master/test/Spec.hs) for usage.
+    >>> :set -fth
+    >>> let x = "bar"
+    >>> let y = 23
+    >>> $(format "foo {x} {y} baz")
+    "foo bar 23 baz"
