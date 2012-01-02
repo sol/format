@@ -1,5 +1,6 @@
-String interpolation for Haskell:
+String interpolation for Haskell.
 
+Here is an interactive session that shows how it is used:
     >>> :set -fth
     >>> let x = "bar"
     >>> let y = 23
