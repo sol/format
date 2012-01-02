@@ -1,7 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Text.Format.Internal (format, formatS, parse, Literal(..), Capture(..)) where
+module Text.Format.Internal (format, formatS, parse, Node(..)) where
 
 import           Language.Haskell.TH
+import           Control.Monad (liftM2)
 import           Text.ParserCombinators.ReadP
 import qualified Text.Format.Formattable as Formattable
 
@@ -25,46 +26,41 @@ formatS :: String -> Q Exp
 formatS s =
   case parse s of
     Nothing -> fail ("Invalid format string: " ++ show s)
-    Just (Literal x, xs) -> [|showString x . $(format_ xs)|]
+    Just xs -> go xs
   where
-    format_ [] = [|id|]
-    format_ ((Capture c, Literal x) : xs) = [|Formattable.formatS $(dyn c) . showString x . $(format_ xs)|]
+    go [] = [|id|]
+    go (Capture x : xs) = [|Formattable.formatS $(dyn x) . $(go xs)|]
+    go (Literal x : xs) = [|showString x . $(go xs)|]
 
-type Spec = (Literal, [(Capture, Literal)])
-newtype Literal = Literal String deriving (Eq, Show)
-newtype Capture = Capture String deriving (Eq, Show)
+data Node = Literal String | Capture String
 
 -- | Parse a format strig.
-parse :: String -> Maybe Spec
+parse :: String -> Maybe [Node]
 parse s =
-  case readP_to_S spec s of
+  case readP_to_S nodes s of
     [(x, "")] -> Just x
     _         -> Nothing
 
-spec :: ReadP Spec
-spec = do
-  l <- literal
-  c <- many capture
-  eof
-  return (l, c)
+nodes :: ReadP [Node]
+nodes = many (capture <++ literal) << eof
 
-literal :: ReadP Literal
-literal = (Literal . concat) `fmap` literal_
+node :: ReadP Node
+node = capture <++ literal
+
+literal :: ReadP Node
+literal = Literal `fmap` go
   where
-    literal_ = do
-      x <- munch (/= '{')
-      s <- look
-      case s of
-        '{':'{':_ -> do
-          _ <- string "{{"
-          y <- literal_
-          return (x : "{" : y)
-        _ -> return [x]
+    go = do
+      x  <- (string "{{" >> return '{') <++ satisfy (/='{')
+      xs <- munch (/= '{')
+      ys <- go <++ return ""
+      return $ (x:xs) ++ ys
 
-capture :: ReadP (Capture, Literal)
-capture = do
-  _ <- char '{'
-  c <- munch1 (/= '}')
-  _ <- char '}'
-  l <- literal
-  return (Capture c, l)
+capture :: ReadP Node
+capture = Capture `fmap` (char '{' >> name << char '}')
+  where
+    name = munch1 (\c -> c /= '{' && c /= '}')
+
+-- | same as <*
+(<<) :: Monad m => m a -> m b -> m a
+(<<) = liftM2 const
