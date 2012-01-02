@@ -28,7 +28,12 @@ formatS s =
     Nothing -> fail ("Invalid format string: " ++ show s)
     Just xs -> go xs
   where
+    -- We make some effort here to produces code, that contains no
+    -- redundancies.  This is a good idea, as the code makes it into error
+    -- messages.
     go [] = [|id|]
+    go [Capture x] = [|Formattable.formatS $(dyn x)|]
+    go [Literal x] = [|showString x|]
     go (Capture x : xs) = [|Formattable.formatS $(dyn x) . $(go xs)|]
     go (Literal x : xs) = [|showString x . $(go xs)|]
 
