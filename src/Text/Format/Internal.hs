@@ -49,9 +49,6 @@ parse s =
 nodes :: ReadP [Node]
 nodes = many (capture <++ literal) << eof
 
-node :: ReadP Node
-node = capture <++ literal
-
 literal :: ReadP Node
 literal = Literal `fmap` go
   where
